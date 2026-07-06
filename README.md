@@ -1,4 +1,3 @@
---Terminal kodları--
 
 .venv açmak için:
 .venv\Scripts\activate
@@ -14,7 +13,6 @@ py main.py
 python run_backend.py
 python main.py
 
---Tarayıcıda--
 http://127.0.0.1:8000/devices
 http://127.0.0.1:8000/docs
 http://127.0.0.1:8000/metrics
