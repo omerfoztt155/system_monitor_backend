@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from backend.services.system_metrics_service import SystemMetricsService
+from pathlib import Path
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 system_metrics_service = SystemMetricsService()
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 @app.get("/")
 def root():
@@ -50,3 +53,7 @@ def get_all_metrics():
         )
 
     return response
+
+@app.get("/dashboard")
+def dashboard():
+    return FileResponse(STATIC_DIR / "dashboard.html")

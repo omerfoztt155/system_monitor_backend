@@ -19,3 +19,4 @@ http://127.0.0.1:8000/devices
 http://127.0.0.1:8000/docs
 http://127.0.0.1:8000/metrics
 http://127.0.0.1:8000/metrics/latest
+http://127.0.0.1:8000/dashboard

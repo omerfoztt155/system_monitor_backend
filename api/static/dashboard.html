@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Izleme Paneli</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+        }
+        .charts-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .chart-block {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1 1 320px;
+            min-width: 280px;
+        }
+        .chart-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .cpu-title { color: #4bc0c0; }
+        .ram-title { color: #ff6384; }
+        .disk-title { color: #ffcd56; }
+    </style>
+</head>
+<body>
+    <h1>Sistem Izleme Paneli</h1>
+
+    <div class="charts-wrapper">
+        <div class="chart-block">
+            <div class="chart-title cpu-title">
+                <span>CPU Kullanimi</span>
+                <span id="cpuValue">-- %</span>
+            </div>
+            <canvas id="cpuChart"></canvas>
+        </div>
+
+        <div class="chart-block">
+            <div class="chart-title ram-title">
+                <span>RAM Kullanimi</span>
+                <span id="ramValue">-- %</span>
+            </div>
+            <canvas id="ramChart"></canvas>
+        </div>
+
+        <div class="chart-block">
+            <div class="chart-title disk-title">
+                <span>Disk Kullanimi</span>
+                <span id="diskValue">-- %</span>
+            </div>
+            <canvas id="diskChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const MAX_POINTS = 30;
+
+        function createChart(canvasId, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: color,
+                        backgroundColor: color + '33',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    animation: false,
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: '#f0f0f0' } },
+                        x: { ticks: { color: '#f0f0f0' } }
+                    }
+                }
+            });
+        }
+
+        const cpuChart = createChart('cpuChart', '#4bc0c0');
+        const ramChart = createChart('ramChart', '#ff6384');
+        const diskChart = createChart('diskChart', '#ffcd56');
+
+        function pushData(chart, label, value) {
+            chart.data.labels.push(label);
+            chart.data.datasets[0].data.push(value);
+
+            if (chart.data.labels.length > MAX_POINTS) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.update();
+        }
+
+        async function fetchLatestMetric() {
+            try {
+                const response = await fetch('/metrics/latest');
+                const data = await response.json();
+
+                if (data.message) {
+                    return;
+                }
+
+                const label = new Date().toLocaleTimeString();
+
+                pushData(cpuChart, label, data.cpu_usage);
+                pushData(ramChart, label, data.ram_usage);
+                pushData(diskChart, label, data.disk_usage);
+
+                document.getElementById('cpuValue').textContent = data.cpu_usage.toFixed(1) + ' %';
+                document.getElementById('ramValue').textContent = data.ram_usage.toFixed(1) + ' %';
+                document.getElementById('diskValue').textContent = data.disk_usage.toFixed(1) + ' %';
+
+            } catch (error) {
+                console.error('Veri alinamadi:', error);
+            }
+        }
+
+        fetchLatestMetric();
+        setInterval(fetchLatestMetric, 1000);
+    </script>
+</body>
+</html>
