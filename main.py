@@ -1,12 +1,15 @@
-from sensor.sensor import Sensor
-from mqtt.publisher import Publisher
-
+import logging
 import time
+from backend.logging_config import configure_logging
+from mqtt.publisher import Publisher
+from sensor.sensor import Sensor
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 def main():
     sensor = Sensor("laptop-01")
     publisher = Publisher()
-
     publisher.connect()
 
     try:
@@ -15,16 +18,15 @@ def main():
 
             publisher.publish("iot/sensors", data)
 
-            print(f"Gönderildi -> {data}")
+            logger.info("Gönderildi -> %s", data)
 
             time.sleep(1)
 
     except KeyboardInterrupt:
-        print("\nProgram kapatiliyor...")
+        logger.info("Program kapatiliyor...")
 
     finally:
         publisher.disconnect()
-
 
 if __name__ == "__main__":
     main()
